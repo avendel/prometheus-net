@@ -421,4 +421,18 @@ public sealed class MetricsTests
 
         Assert.AreEqual(0, values.Length);
     }
+
+    [TestMethod]
+    public void SingleLabel() {
+        var metric = _metrics.CreateGauge("single_label_metric", "", "label_name");
+
+        var labelled = metric.WithLabel("value1");
+
+        labelled.Inc(123);
+        metric.WithLabel("another_value").Inc(456);
+
+        Assert.AreEqual(123, labelled.Value);
+        Assert.AreSame(labelled, metric.WithLabel("value1"));
+        Assert.AreSame(labelled, metric.WithLabels("value1"));
+    }
 }

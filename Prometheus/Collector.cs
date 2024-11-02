@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.ObjectPool;
 
@@ -185,6 +186,19 @@ public abstract class Collector<TChild> : Collector, ICollector<TChild>
     // Discourage this method as it can create confusion. But it works fine, so no reason to mark it obsolete, really.
     [EditorBrowsable(EditorBrowsableState.Never)]
     public TChild Labels(params string[] labelValues) => WithLabels(labelValues);
+
+    public TChild WithLabel(string labelValue) {
+        if (labelValue == null)
+            throw new ArgumentNullException(nameof(labelValue));
+
+#if NET
+        // Calling a params method allocates an array. We can avoid that by calling the span overload directly.
+        var labelSpan = MemoryMarshal.CreateReadOnlySpan(ref labelValue, 1);
+        return WithLabels(labelSpan);
+#else
+        return WithLabels(labelValue);
+#endif
+    }
 
     public TChild WithLabels(params string[] labelValues)
     {

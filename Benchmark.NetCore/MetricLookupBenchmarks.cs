@@ -38,6 +38,7 @@ public class MetricLookupBenchmarks
 
     private readonly CollectorRegistry _registry = Metrics.NewCustomRegistry();
     private readonly Counter[] _metrics;
+    private readonly Counter _singleLabelMetric;
 
     public MetricLookupBenchmarks()
     {
@@ -48,6 +49,8 @@ public class MetricLookupBenchmarks
         // Just use 1st variant for the keys (all we care about are that there is some name-like value in there).
         for (var metricIndex = 0; metricIndex < _metricCount; metricIndex++)
             _metrics[metricIndex] = factory.CreateCounter($"metric{metricIndex:D2}", "", _labelValueRows[metricIndex][0]);
+
+        _singleLabelMetric = factory.CreateCounter("single_label_metric", "", "label0");
     }
 
     /// <summary>
@@ -79,13 +82,33 @@ public class MetricLookupBenchmarks
     }
 
     /// <summary>
+    /// Increments a labelled Collector.Child instance for a single metric.
+    /// </summary>
+    [Benchmark]
+    public void WithLabels_OneMetric_ManySeries_OneLabel()
+    {
+        for (var variantIndex = 0; variantIndex < _variantCount; variantIndex++)
+            _singleLabelMetric.WithLabels(_labelValueRows[0][variantIndex][0]).Inc();
+    }
+
+    /// <summary>
+    /// Increments a labelled Collector.Child instance for a single metric.
+    /// </summary>
+    [Benchmark]
+    public void WithLabel_OneMetric_ManySeries_OneLabel()
+    {
+        for (var variantIndex = 0; variantIndex < _variantCount; variantIndex++)
+            _singleLabelMetric.WithLabel(_labelValueRows[0][variantIndex][0]).Inc();
+    }
+
+    /// <summary>
     /// Increments labelled Collector.Child instances for one metric with multiple different sets of labels.
     /// </summary>
     [Benchmark]
     public void WithLabels_OneMetric_ManySeries()
     {
         for (var variantIndex = 0; variantIndex < _variantCount; variantIndex++)
-            _metrics[0].WithLabels(_labelValueRows[0][variantIndex]).Inc();
+            _metrics[0].WithLabels(_labelValueRows[0][variantIndex][0]).Inc();
     }
 
     /// <summary>
