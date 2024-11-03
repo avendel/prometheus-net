@@ -191,10 +191,12 @@ public abstract class Collector<TChild> : Collector, ICollector<TChild>
         if (labelValue == null)
             throw new ArgumentNullException(nameof(labelValue));
 
-#if NET
-        // Calling a params method allocates an array. We can avoid that by calling the span overload directly.
-        var labelSpan = MemoryMarshal.CreateReadOnlySpan(ref labelValue, 1);
-        return WithLabels(labelSpan);
+    // Calling a params method allocates an array. We can avoid that by calling the span overload directly.
+    // The APIs for creating spans from single items are not available in .NET Framework, though.
+#if NET7_0_OR_GREATER
+        return WithLabels(new ReadOnlySpan<string>(in labelValue));
+#elif NET
+        return WithLabels(MemoryMarshal.CreateReadOnlySpan(ref labelValue, 1));
 #else
         return WithLabels(labelValue);
 #endif
