@@ -108,7 +108,7 @@ public class MetricLookupBenchmarks
     public void WithLabels_OneMetric_ManySeries()
     {
         for (var variantIndex = 0; variantIndex < _variantCount; variantIndex++)
-            _metrics[0].WithLabels(_labelValueRows[0][variantIndex][0]).Inc();
+            _metrics[0].WithLabels(_labelValueRows[0][variantIndex]).Inc();
     }
 
     /// <summary>
